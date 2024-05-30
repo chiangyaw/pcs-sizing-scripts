@@ -30,11 +30,16 @@ import json
 # (This script queries for running VMs separately.)
 
 resource_mapping = {
-    'Microsoft.DBforPostgreSQL/servers': 'PostgreSQL Servers',
-    'Microsoft.Network/loadBalancers'  : 'Network Load Balancers',
-    'Microsoft.Sql/managedInstances:'  : 'SQL Managed Instances',
+    'Microsoft.storage/storageaccounts': 'Storage Accounts',
+    'microsoft.documentdb/databaseaccounts': 'Database Accounts',
+    'microsoft.synapse/workspaces': 'Workspaces',
     'Microsoft.Sql/servers'            : 'SQL Server and Databases',
-    'Microsoft.Sql/servers/databases'  : 'SQL Server and Databases'
+    'microsoft.cache/redis'            : 'Redis',
+    'microsoft.dbformysql/servers'     : 'MySQL Servers',
+    'microsoft.dbformysql/flexibleservers' : 'MySQL Flexible Servers',
+    'microsoft.dbforpostgresql/servergroupsv2' : 'PostgreSQL Servers',
+    'microsoft.dbforpostgresql/flexibleservers' : 'PostgreSQL Flexible Servers',
+    'microsoft.dbforpostgresql/servers' : 'MariaDB Servers'
 }
 
 global_az_resource_count = 0
