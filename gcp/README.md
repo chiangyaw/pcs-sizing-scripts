@@ -16,10 +16,15 @@ The below GCP APIs need to be enabled in order to gather information from GCP.
 
 * gcloud projects list
 * gcloud compute instances list
-* gcloud compute forwarding-rules list
-* gcloud compute routers list
-* gcloud compute routers nats list
 * gcloud sql instances list
+* gcloud storage ls
+* gcloud filestore instances list
+* gcloud alpha bq datasets list
+* gcloud bigtable instances list
+* gcloud spanner instances list
+* gcloud redis instances list
+* gcloud memcache instances list
+* gcloud firestore databases list
 
 ### Verbose Mode
 
