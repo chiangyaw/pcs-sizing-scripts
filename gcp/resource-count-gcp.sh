@@ -92,7 +92,7 @@ gcloud_sql_instances_list() {
 
 gcloud_storage_ls() {
   # shellcheck disable=SC2086
-  RESULT=$(gcloud storage ls --project "${1}" --format json $VERBOSITY_ARGS 2>/dev/null)
+  RESULT=$(gcloud storage ls --project "${1}" $VERBOSITY_ARGS 2>/dev/null)
   if [ $? -eq 0 ]; then
     echo "${RESULT}"
   fi
@@ -212,7 +212,7 @@ count_project_resources() {
     SQL_INSTANCES_COUNT=$((SQL_INSTANCES_COUNT + RESOURCE_COUNT))
     echo "  Count of SQL Instances: ${SQL_INSTANCES_COUNT}"
 
-    RESOURCE_COUNT=$(gcloud_storage_ls "${PROJECT}" | jq '.[].name' | wc -l)
+    RESOURCE_COUNT=$(gcloud_storage_ls "${PROJECT}" | wc -l)
     STORAGE_COUNT=$((STORAGE_COUNT + RESOURCE_COUNT))
     echo "  Count of Storage Buckets: ${STORAGE_COUNT}"
 
