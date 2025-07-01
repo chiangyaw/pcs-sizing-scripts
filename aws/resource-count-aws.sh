@@ -180,14 +180,14 @@ aws_ec2_describe_db_instances() {
   fi
 }
 
-aws_ec2_describe_nat_gateways() {
-  RESULT=$(aws ec2 describe-nat-gateways --max-items 99999 --region="${1}" --output json 2>/dev/null)
-  if [ $? -eq 0 ]; then
-    echo "${RESULT}"
-  else
-    echo '{"Error": [] }'
-  fi
-}
+# aws_ec2_describe_nat_gateways() {
+#   RESULT=$(aws ec2 describe-nat-gateways --max-items 99999 --region="${1}" --output json 2>/dev/null)
+#   if [ $? -eq 0 ]; then
+#     echo "${RESULT}"
+#   else
+#     echo '{"Error": [] }'
+#   fi
+# }
 
 aws_redshift_describe_clusters() {
   RESULT=$(aws redshift describe-clusters --max-items 99999 --region="${1}" --output json 2>/dev/null)
@@ -198,14 +198,14 @@ aws_redshift_describe_clusters() {
   fi
 }
 
-aws_elb_describe_load_balancers() {
-  RESULT=$(aws elb describe-load-balancers --max-items 99999 --region="${1}" --output json 2>/dev/null)
-  if [ $? -eq 0 ]; then
-    echo "${RESULT}"
-  else
-    echo '{"Error": [] }'
-  fi
-}
+# aws_elb_describe_load_balancers() {
+#   RESULT=$(aws elb describe-load-balancers --max-items 99999 --region="${1}" --output json 2>/dev/null)
+#   if [ $? -eq 0 ]; then
+#     echo "${RESULT}"
+#   else
+#     echo '{"Error": [] }'
+#   fi
+# }
 
 aws_lambda_get_account_settings() {
   RESULT=$(aws lambda get-account-settings --region="${1}" --output json 2>/dev/null)
@@ -225,14 +225,14 @@ aws_s3api_list_buckets() {
   fi
 }
 
-aws_s3_ls_bucket_size() {
-  RESULT=$(aws s3api list-objects --bucket "${1}" --output json --query "sum(Contents[].Size)" 2>/dev/null)
-  if [ $? -eq 0 ]; then
-    echo "${RESULT}"
-  else
-    echo '-1'
-  fi
-}
+# aws_s3_ls_bucket_size() {
+#   RESULT=$(aws s3api list-objects --bucket "${1}" --output json --query "sum(Contents[].Size)" 2>/dev/null)
+#   if [ $? -eq 0 ]; then
+#     echo "${RESULT}"
+#   else
+#     echo '-1'
+#   fi
+# }
 
 ####
 
@@ -256,46 +256,52 @@ get_ecs_fargate_task_count() {
   echo "${RESULT}"
 }
 
-get_eks_cluster_node_count() {
-  REGION=$1
-  EKS_CLUSTERS=$(aws_eks_list_clusters "${REGION}" | jq -r '.clusters[]')
+# get_eks_cluster_node_count() {
+#   REGION=$1
+#   EKS_CLUSTERS=$(aws_eks_list_clusters "${REGION}" | jq -r '.clusters[]')
 
-  XIFS=$IFS
-  # shellcheck disable=SC2206
-  IFS=$'\n' EKS_CLUSTERS_LIST=($EKS_CLUSTERS)
-  IFS=$XIFS
+#   XIFS=$IFS
+#   # shellcheck disable=SC2206
+#   IFS=$'\n' EKS_CLUSTERS_LIST=($EKS_CLUSTERS)
+#   IFS=$XIFS
 
+#   RESULT=0
+
+#   for CLUSTER in "${EKS_CLUSTERS_LIST[@]}"
+#   do
+#     EKS_NODEGROUPS=$(aws_eks_list_nodegroups "${CLUSTER}")
+#     if [ "${EKS_NODEGROUPS}" != "" ]; then
+#       EKS_NODEGROUPS=$(echo "$EKS_NODEGROUPS" | jq -r '.nodegroups[]' )
+
+#       XIFS=$IFS
+#       # shellcheck disable=SC2206
+#       IFS=$'\n' EKS_NODEGROUP_LIST=($EKS_NODEGROUPS)
+#       IFS=$XIFS
+
+#       for NODEGROUP in "${EKS_NODEGROUP_LIST[@]}"
+#       do
+#         EKS_NODEGROUP_MAXSIZE=$(aws_eks_describe_nodegroup "${CLUSTER}" "${NODEGROUP}" | jq -r '.nodegroup.scalingConfig.maxSize' 2>/dev/null)
+#         RESULT=$((RESULT + EKS_NODEGROUP_MAXSIZE))
+#         echo "|${CLUSTER}|${NODEGROUP}|${EKS_NODEGROUP_MAXSIZE}|${RESULT}|" >> output.txt
+#       done
+#     fi
+#   done
+#   echo "${RESULT}"
+# }
+
+# get_s3_bucket_list() {
+#   S3_BUCKETS=$(aws_s3api_list_buckets | jq -r '.[]' 2>/dev/null)
+
+#   XIFS=$IFS
+#   # shellcheck disable=SC2206
+#   IFS=$'\n' S3_BUCKETS_LIST=($S3_BUCKETS)
+#   IFS=$XIFS
+# }
+
+get_s3_bucket_count() {
   RESULT=0
-
-  for CLUSTER in "${EKS_CLUSTERS_LIST[@]}"
-  do
-    EKS_NODEGROUPS=$(aws_eks_list_nodegroups "${CLUSTER}")
-    if [ "${EKS_NODEGROUPS}" != "" ]; then
-      EKS_NODEGROUPS=$(echo "$EKS_NODEGROUPS" | jq -r '.nodegroups[]' )
-
-      XIFS=$IFS
-      # shellcheck disable=SC2206
-      IFS=$'\n' EKS_NODEGROUP_LIST=($EKS_NODEGROUPS)
-      IFS=$XIFS
-
-      for NODEGROUP in "${EKS_NODEGROUP_LIST[@]}"
-      do
-        EKS_NODEGROUP_MAXSIZE=$(aws_eks_describe_nodegroup "${CLUSTER}" "${NODEGROUP}" | jq -r '.nodegroup.scalingConfig.maxSize' 2>/dev/null)
-        RESULT=$((RESULT + EKS_NODEGROUP_MAXSIZE))
-        echo "|${CLUSTER}|${NODEGROUP}|${EKS_NODEGROUP_MAXSIZE}|${RESULT}|" >> output.txt
-      done
-    fi
-  done
+  S3_BUCKETS_COUNT=$(aws_s3api_list_buckets | jq ', | length' 2>/dev/null)
   echo "${RESULT}"
-}
-
-get_s3_bucket_list() {
-  S3_BUCKETS=$(aws_s3api_list_buckets | jq -r '.[]' 2>/dev/null)
-
-  XIFS=$IFS
-  # shellcheck disable=SC2206
-  IFS=$'\n' S3_BUCKETS_LIST=($S3_BUCKETS)
-  IFS=$XIFS
 }
 
 ####
@@ -313,7 +319,7 @@ get_region_list() {
 
   if [ ${#REGION_LIST[@]} -eq 0 ]; then
     echo "  Warning: Using default region list"
-    REGION_LIST=(us-east-1 us-east-2 us-west-1 us-west-2 ap-south-1 ap-northeast-1 ap-northeast-2 ap-southeast-1 ap-southeast-2 eu-north-1 eu-central-1 eu-west-1 sa-east-1 eu-west-2 eu-west-3 ca-central-1)
+    REGION_LIST=(ap-south-2 ap-south-1 eu-south-1 eu-south-2 me-central-1 il-central-1 ca-central-1 ap-east-2 mx-central-1 eu-central-1 eu-central-2 us-west-1 us-west-2 af-south-1 eu-north-1 eu-west-3  eu-west-2 eu-west-1 ap-northeast-3 ap-northeast-2 me-south-1 ap-northeast-1 sa-east-1 ap-east-1 ca-west-1 ap-southeast-1 ap-southeast-2 ap-southeast-3 ap-southeast-4 us-east-1 ap-southeast-5 us-east-2 ap-southeast-7)
   fi
 
   echo "  Total number of regions: ${#REGION_LIST[@]}"
@@ -393,29 +399,31 @@ unassume_role() {
 reset_account_counters() {
   EC2_INSTANCE_COUNT=0
   RDS_INSTANCE_COUNT=0
-  NATGW_COUNT=0
+  # NATGW_COUNT=0
   REDSHIFT_COUNT=0
-  ELB_COUNT=0
+  # ELB_COUNT=0
   LAMBDA_COUNT=0
   ECS_FARGATE_TASK_COUNT=0
-  S3_BUCKETS_SIZE=0
+  # S3_BUCKETS_SIZE=0
+  S3_BUCKETS_COUNT=0
 }
 
 reset_global_counters() {
   EC2_INSTANCE_COUNT_GLOBAL=0
   RDS_INSTANCE_COUNT_GLOBAL=0
   REDSHIFT_COUNT_GLOBAL=0
-  NATGW_COUNT_GLOBAL=0
-  ELB_COUNT_GLOBAL=0
+  # NATGW_COUNT_GLOBAL=0
+  # ELB_COUNT_GLOBAL=0
   LAMBDA_COUNT_GLOBAL=0
   ECS_FARGATE_TASK_COUNT_GLOBAL=0
-  S3_BUCKETS_SIZE_GLOBAL=0
-  S3_BUCKETS_CREDIT_EXPOSURE_USAGE_GLOBAL=0
-  S3_BUCKETS_CREDIT_FULL_USAGE_GLOBAL=0
-  WORKLOAD_COUNT_GLOBAL=0
-  WORKLOAD_COUNT_GLOBAL_WITH_IAM_MODULE=0
-  LAMBDA_CREDIT_USAGE_GLOBAL=0
-  COMPUTE_CREDIT_USAGE_GLOBAL=0
+  S3_BUCKETS_COUNT_GLOBAL=0
+  # S3_BUCKETS_SIZE_GLOBAL=0
+  # S3_BUCKETS_CREDIT_EXPOSURE_USAGE_GLOBAL=0
+  # S3_BUCKETS_CREDIT_FULL_USAGE_GLOBAL=0
+  # WORKLOAD_COUNT_GLOBAL=0
+  # WORKLOAD_COUNT_GLOBAL_WITH_IAM_MODULE=0
+  # LAMBDA_CREDIT_USAGE_GLOBAL=0
+  # COMPUTE_CREDIT_USAGE_GLOBAL=0
 }
 
 ##########################################################################################
@@ -459,17 +467,17 @@ count_account_resources() {
     echo "###################################################################################"
     echo ""
 
-    echo "###################################################################################"
-    echo "NAT Gateways"
-    for i in "${REGION_LIST[@]}"
-    do
-      RESOURCE_COUNT=$(aws_ec2_describe_nat_gateways "${i}" | jq '.[] | length' 2>/dev/null)
-      echo "  Count of NAT Gateways in Region ${i}: ${RESOURCE_COUNT}"
-      NATGW_COUNT=$((NATGW_COUNT + RESOURCE_COUNT))
-    done
-    echo "Total NAT Gateways across all regions: ${NATGW_COUNT}"
-    echo "###################################################################################"
-    echo ""
+    # echo "###################################################################################"
+    # echo "NAT Gateways"
+    # for i in "${REGION_LIST[@]}"
+    # do
+    #   RESOURCE_COUNT=$(aws_ec2_describe_nat_gateways "${i}" | jq '.[] | length' 2>/dev/null)
+    #   echo "  Count of NAT Gateways in Region ${i}: ${RESOURCE_COUNT}"
+    #   NATGW_COUNT=$((NATGW_COUNT + RESOURCE_COUNT))
+    # done
+    # echo "Total NAT Gateways across all regions: ${NATGW_COUNT}"
+    # echo "###################################################################################"
+    # echo ""
 
     echo "###################################################################################"
     echo "RedShift Clusters"
@@ -483,81 +491,99 @@ count_account_resources() {
     echo "###################################################################################"
     echo ""
 
+    # echo "###################################################################################"
+    # echo "ELBs"
+    # for i in "${REGION_LIST[@]}"
+    # do
+    #   RESOURCE_COUNT=$(aws_elb_describe_load_balancers "${i}" | jq '.[] | length' 2>/dev/null)
+    #   echo " Count of ELBs in Region ${i}: ${RESOURCE_COUNT}"
+    #   ELB_COUNT=$((ELB_COUNT + RESOURCE_COUNT))
+    # done
+    # echo "Total ELBs across all regions: ${ELB_COUNT}"
+    # echo "###################################################################################"
+    # echo ""
+
     echo "###################################################################################"
-    echo "ELBs"
+    echo "Lambda Functions"
     for i in "${REGION_LIST[@]}"
     do
-      RESOURCE_COUNT=$(aws_elb_describe_load_balancers "${i}" | jq '.[] | length' 2>/dev/null)
-      echo " Count of ELBs in Region ${i}: ${RESOURCE_COUNT}"
-      ELB_COUNT=$((ELB_COUNT + RESOURCE_COUNT))
+      RESOURCE_COUNT=$(aws_lambda_get_account_settings "${i}" | jq '.AccountUsage.FunctionCount' 2>/dev/null)
+      echo " Count of Lambda Functions in Region ${i}: ${RESOURCE_COUNT}"
+      LAMBDA_COUNT=$((LAMBDA_COUNT + RESOURCE_COUNT))
     done
-    echo "Total ELBs across all regions: ${ELB_COUNT}"
+    echo "Total Lambda Functions across all regions: ${LAMBDA_COUNT}"
     echo "###################################################################################"
     echo ""
 
-    if [ "${WITH_CWP}" = "true" ]; then
+    echo "###################################################################################"
+    echo "ECS Fargate Tasks"
+    for i in "${REGION_LIST[@]}"
+    do
+      RESOURCE_COUNT=$(get_ecs_fargate_task_count "${i}")
+      echo "  Count of Running ECS Tasks in Region ${i}: ${RESOURCE_COUNT}"
+      ECS_FARGATE_TASK_COUNT=$((ECS_FARGATE_TASK_COUNT + RESOURCE_COUNT))
+    done
+    echo "Total ECS Fargate Task Count (Instances) across all regions: ${ECS_FARGATE_TASK_COUNT}"
+    echo "###################################################################################"
+    echo ""
 
-      echo "###################################################################################"
-      echo "Lambda Functions"
-      for i in "${REGION_LIST[@]}"
-      do
-        RESOURCE_COUNT=$(aws_lambda_get_account_settings "${i}" | jq '.AccountUsage.FunctionCount' 2>/dev/null)
-        echo " Count of Lambda Functions in Region ${i}: ${RESOURCE_COUNT}"
-        LAMBDA_COUNT=$((LAMBDA_COUNT + RESOURCE_COUNT))
-      done
-      echo "Total Lambda Functions across all regions: ${LAMBDA_COUNT}"
-      echo "###################################################################################"
-      echo ""
+    # echo "###################################################################################"
+    # echo "EKS Clusters"
+    # for i in "${REGION_LIST[@]}"
+    # do
+    #   RESOURCE_COUNT=$(get_eks_cluster_node_count "${i}")
+    #   echo "  Count of Maximum EKS Cluster Nodes in Region ${i}: ${RESOURCE_COUNT}"
+    #   EKS_CLUSTER_NODE_COUNT=$((EKS_CLUSTER_NODE_COUNT + RESOURCE_COUNT))
+    # done
+    # echo "Total Maximum EKS Cluster Nodes across all regions: ${EKS_CLUSTER_NODE_COUNT}"
+    # echo "###################################################################################"
+    # echo ""
 
-      echo "###################################################################################"
-      echo "ECS Fargate Tasks"
-      for i in "${REGION_LIST[@]}"
-      do
-        RESOURCE_COUNT=$(get_ecs_fargate_task_count "${i}")
-        echo "  Count of Running ECS Tasks in Region ${i}: ${RESOURCE_COUNT}"
-        ECS_FARGATE_TASK_COUNT=$((ECS_FARGATE_TASK_COUNT + RESOURCE_COUNT))
-      done
-      echo "Total ECS Fargate Task Count (Instances) across all regions: ${ECS_FARGATE_TASK_COUNT}"
-      echo "###################################################################################"
-      echo ""
+    # echo "###################################################################################"
+    # echo "S3 Buckets"
+    # get_s3_bucket_list
+    # for i in "${S3_BUCKETS_LIST[@]}"
+    #   do
+    #   S3_BUCKET_SIZE=$(aws_s3_ls_bucket_size "${i}" 2>/dev/null)
+    #   echo "  Size of S3 Bucket ${i}: ${S3_BUCKET_SIZE} bytes"
+    #   S3_BUCKETS_SIZE=$((S3_BUCKETS_SIZE + S3_BUCKET_SIZE))
+    # done
+    # echo "Total S3 Buckets Size: ${S3_BUCKETS_SIZE} bytes"
+    # echo "###################################################################################"
+    # echo ""
 
-      echo "###################################################################################"
-      echo "EKS Clusters"
-      for i in "${REGION_LIST[@]}"
-      do
-        RESOURCE_COUNT=$(get_eks_cluster_node_count "${i}")
-        echo "  Count of Maximum EKS Cluster Nodes in Region ${i}: ${RESOURCE_COUNT}"
-        EKS_CLUSTER_NODE_COUNT=$((EKS_CLUSTER_NODE_COUNT + RESOURCE_COUNT))
-      done
-      echo "Total Maximum EKS Cluster Nodes across all regions: ${EKS_CLUSTER_NODE_COUNT}"
-      echo "###################################################################################"
-      echo ""
+    echo "###################################################################################"
+    echo "S3 Buckets"
+    RESOURCE_COUNT=$(get_s3_bucket_count)
+    S3_BUCKETS_COUNT=$RESOURCE_COUNT
+    echo "Total S3 Buckets Count: ${S3_BUCKETS_COUNT}"
+    echo "###################################################################################"
+    echo ""
 
-    fi
-
-    if [ "${WITH_DATA}" = "true" ]; then
-      echo "###################################################################################"
-      echo "S3 Bucket Sizes"
-      get_s3_bucket_list
-      for i in "${S3_BUCKETS_LIST[@]}"
-        do
-        S3_BUCKET_SIZE=$(aws_s3_ls_bucket_size "${i}" 2>/dev/null)
-        echo "  Size of S3 Bucket ${i}: ${S3_BUCKET_SIZE} bytes"
-        S3_BUCKETS_SIZE=$((S3_BUCKETS_SIZE + S3_BUCKET_SIZE))
-      done
-      echo "Total S3 Buckets Size: ${S3_BUCKETS_SIZE} bytes"
-      echo "###################################################################################"
-      echo ""
-    fi
+    # if [ "${WITH_DATA}" = "true" ]; then
+    #   echo "###################################################################################"
+    #   echo "S3 Bucket Sizes"
+    #   get_s3_bucket_list
+    #   for i in "${S3_BUCKETS_LIST[@]}"
+    #     do
+    #     S3_BUCKET_SIZE=$(aws_s3_ls_bucket_size "${i}" 2>/dev/null)
+    #     echo "  Size of S3 Bucket ${i}: ${S3_BUCKET_SIZE} bytes"
+    #     S3_BUCKETS_SIZE=$((S3_BUCKETS_SIZE + S3_BUCKET_SIZE))
+    #   done
+    #   echo "Total S3 Buckets Size: ${S3_BUCKETS_SIZE} bytes"
+    #   echo "###################################################################################"
+    #   echo ""
+    # fi
 
     EC2_INSTANCE_COUNT_GLOBAL=$((EC2_INSTANCE_COUNT_GLOBAL + EC2_INSTANCE_COUNT))
     RDS_INSTANCE_COUNT_GLOBAL=$((RDS_INSTANCE_COUNT_GLOBAL + RDS_INSTANCE_COUNT))
-    NATGW_COUNT_GLOBAL=$((NATGW_COUNT_GLOBAL + NATGW_COUNT))
+    # NATGW_COUNT_GLOBAL=$((NATGW_COUNT_GLOBAL + NATGW_COUNT))
     REDSHIFT_COUNT_GLOBAL=$((REDSHIFT_COUNT_GLOBAL + REDSHIFT_COUNT))
-    ELB_COUNT_GLOBAL=$((ELB_COUNT_GLOBAL + ELB_COUNT))
+    # ELB_COUNT_GLOBAL=$((ELB_COUNT_GLOBAL + ELB_COUNT))
     LAMBDA_COUNT_GLOBAL=$((LAMBDA_COUNT_GLOBAL + LAMBDA_COUNT))
     ECS_FARGATE_TASK_COUNT_GLOBAL=$((ECS_FARGATE_TASK_COUNT_GLOBAL + ECS_FARGATE_TASK_COUNT))
-    S3_BUCKETS_SIZE_GLOBAL=$((S3_BUCKETS_SIZE_GLOBAL + S3_BUCKETS_SIZE))
+    # S3_BUCKETS_SIZE_GLOBAL=$((S3_BUCKETS_SIZE_GLOBAL + S3_BUCKETS_SIZE))
+    S3_BUCKETS_COUNT_GLOBAL=$((S3_BUCKETS_COUNT_GLOBAL + S3_BUCKETS_COUNT))
 
     reset_account_counters
 
@@ -566,54 +592,59 @@ count_account_resources() {
     fi
   done
 
-  WORKLOAD_COUNT_GLOBAL=$((EC2_INSTANCE_COUNT_GLOBAL + RDS_INSTANCE_COUNT_GLOBAL + NATGW_COUNT_GLOBAL + REDSHIFT_COUNT_GLOBAL + ELB_COUNT_GLOBAL))
-  WORKLOAD_COUNT_GLOBAL_WITH_IAM_MODULE=$((WORKLOAD_COUNT_GLOBAL*125/100))
+  # WORKLOAD_COUNT_GLOBAL=$((EC2_INSTANCE_COUNT_GLOBAL + RDS_INSTANCE_COUNT_GLOBAL + NATGW_COUNT_GLOBAL + REDSHIFT_COUNT_GLOBAL + ELB_COUNT_GLOBAL))
+  # WORKLOAD_COUNT_GLOBAL_WITH_IAM_MODULE=$((WORKLOAD_COUNT_GLOBAL*125/100))
   echo "###################################################################################"
-  echo "CSPM: Total Billable Resources:"
+  # echo "CSPM: Total Billable Resources:"
+  echo "Total Asset Count:"
   echo "  Count of EC2 Instances:     ${EC2_INSTANCE_COUNT_GLOBAL}"
   echo "  Count of RDS Instances:     ${RDS_INSTANCE_COUNT_GLOBAL}"
-  echo "  Count of NAT Gateways:      ${NATGW_COUNT_GLOBAL}"
+  # echo "  Count of NAT Gateways:      ${NATGW_COUNT_GLOBAL}"
   echo "  Count of RedShift Clusters: ${REDSHIFT_COUNT_GLOBAL}"
-  echo "  Count of ELBs:              ${ELB_COUNT_GLOBAL}"
-  echo ""
-  echo "CSPM: Total Credit Consumption: ${WORKLOAD_COUNT_GLOBAL}"
-  echo "(If using the IAM Security Module: ${WORKLOAD_COUNT_GLOBAL_WITH_IAM_MODULE})"
+  echo "  Count of Lambda Functions: ${LAMBDA_COUNT_GLOBAL}"
+  echo "  Count of ECS Fargate Tasks: ${ECS_FARGATE_TASK_COUNT_GLOBAL}"
+  # echo "  Count of Maximum EKS Cluster Nodes: ${EKS_CLUSTER_NODE_COUNT}"
+  # echo "  Count of ELBs:              ${ELB_COUNT_GLOBAL}"
+  # echo ""
+  # echo "CSPM: Total Credit Consumption: ${WORKLOAD_COUNT_GLOBAL}"
+  # echo "(If using the IAM Security Module: ${WORKLOAD_COUNT_GLOBAL_WITH_IAM_MODULE})"
   echo "###################################################################################"
 
-  if [ "${WITH_CWP}" = "true" ]; then
-    LAMBDA_CREDIT_USAGE_GLOBAL=$((LAMBDA_COUNT_GLOBAL/6))
-    COMPUTE_CREDIT_USAGE_GLOBAL=$((LAMBDA_CREDIT_USAGE_GLOBAL + ECS_FARGATE_TASK_COUNT_GLOBAL))
-    echo ""
-    echo "###################################################################################"
-    echo "CWP Total Credit Consumption:"
-    echo "  Count of Lambda Functions: ${LAMBDA_COUNT_GLOBAL} Credit Consumption: ${LAMBDA_CREDIT_USAGE_GLOBAL}"
-    echo "  Count of ECS Fargate Tasks: ${ECS_FARGATE_TASK_COUNT_GLOBAL}"
-    echo "  Count of Maximum EKS Cluster Nodes: ${EKS_CLUSTER_NODE_COUNT}"
-    echo ""
-    echo "CWP Total Credit Consumption: ${COMPUTE_CREDIT_USAGE_GLOBAL}"
-    echo "###################################################################################"
-  fi
+  # if [ "${WITH_CWP}" = "true" ]; then
+  #   LAMBDA_CREDIT_USAGE_GLOBAL=$((LAMBDA_COUNT_GLOBAL/6))
+  #   COMPUTE_CREDIT_USAGE_GLOBAL=$((LAMBDA_CREDIT_USAGE_GLOBAL + ECS_FARGATE_TASK_COUNT_GLOBAL))
+  #   echo ""
+  #   echo "###################################################################################"
+  #   echo "CWP Total Credit Consumption:"
+  #   echo "  Count of Lambda Functions: ${LAMBDA_COUNT_GLOBAL} Credit Consumption: ${LAMBDA_CREDIT_USAGE_GLOBAL}"
+  #   echo "  Count of ECS Fargate Tasks: ${ECS_FARGATE_TASK_COUNT_GLOBAL}"
+  #   echo "  Count of Maximum EKS Cluster Nodes: ${EKS_CLUSTER_NODE_COUNT}"
+  #   echo ""
+  #   echo "CWP Total Credit Consumption: ${COMPUTE_CREDIT_USAGE_GLOBAL}"
+  #   echo "###################################################################################"
+  # fi
 
-  if [ "${WITH_DATA}" = "true" ]; then
-    S3_BUCKETS_SIZE_GIG_GLOBAL=$((S3_BUCKETS_SIZE_GLOBAL/1000/1000/1000))
-    S3_BUCKETS_CREDIT_EXPOSURE_USAGE_GLOBAL=$((S3_BUCKETS_SIZE_GIG_GLOBAL/200))
-    S3_BUCKETS_CREDIT_FULL_USAGE_GLOBAL=$((S3_BUCKETS_SIZE_GIG_GLOBAL/33))
-    echo ""
-    echo "###################################################################################"
-    echo "Data Security Total Size:"
-    echo "  Bytes: ${S3_BUCKETS_SIZE_GLOBAL}"
-    echo "  GB:    ${S3_BUCKETS_SIZE_GIG_GLOBAL}"
-    echo "Data Security Total Credit Consumption (based upon GB):"
-    echo "  For Exposure Scan: ${S3_BUCKETS_CREDIT_EXPOSURE_USAGE_GLOBAL}"
-    echo "  For Full Scan:     ${S3_BUCKETS_CREDIT_FULL_USAGE_GLOBAL}"
-    echo "###################################################################################"
-  fi
+  # if [ "${WITH_DATA}" = "true" ]; then
+  #   S3_BUCKETS_SIZE_GIG_GLOBAL=$((S3_BUCKETS_SIZE_GLOBAL/1000/1000/1000))
+  #   S3_BUCKETS_CREDIT_EXPOSURE_USAGE_GLOBAL=$((S3_BUCKETS_SIZE_GIG_GLOBAL/200))
+  #   S3_BUCKETS_CREDIT_FULL_USAGE_GLOBAL=$((S3_BUCKETS_SIZE_GIG_GLOBAL/33))
+  #   echo ""
+  #   echo "###################################################################################"
+  #   echo "Data Security Total Size:"
+  #   echo "  Bytes: ${S3_BUCKETS_SIZE_GLOBAL}"
+  #   echo "  GB:    ${S3_BUCKETS_SIZE_GIG_GLOBAL}"
+  #   echo "Data Security Total Credit Consumption (based upon GB):"
+  #   echo "  For Exposure Scan: ${S3_BUCKETS_CREDIT_EXPOSURE_USAGE_GLOBAL}"
+  #   echo "  For Full Scan:     ${S3_BUCKETS_CREDIT_FULL_USAGE_GLOBAL}"
+  #   echo "###################################################################################"
+  # fi
 
   echo ""
   echo "Totals are based upon resource counts at the time that this script is executed."
-  echo "If you have any questions/concerns, please see the following licensing guide:"
-  echo "https://www.paloaltonetworks.com/resources/guides/prisma-cloud-enterprise-edition-licensing-guide"
-}
+  echo "If you have any questions/concerns, please work with the relevant sales representative."
+#   echo "If you have any questions/concerns, please see the following licensing guide:"
+#   echo "https://www.paloaltonetworks.com/resources/guides/prisma-cloud-enterprise-edition-licensing-guide"
+# }
 
 ##########################################################################################
 # Allow shellspec to source this script.
