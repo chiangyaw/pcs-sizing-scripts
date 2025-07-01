@@ -19,10 +19,13 @@ The below AWS APIs need to be enabled in order to gather information from AWS.
 * aws sts assume-role (optional, when running as `resource-count-aws.sh org`)
 * aws ec2 describe-instances
 * aws rds describe-db-instances
-* aws ec2 describe-nat-gateways
 * aws redshift describe-clusters
+* aws lambda get-account-settings
+* aws s3api list-buckets
+
+the below AWS APIs are no longer required:
+* aws ec2 describe-nat-gateways
 * aws elb describe-load-balancer
-* aws lambda get-account-settings (optional, when running as `resource-count-aws.sh cwp`)
 * aws ecs list-clusters (optional, when running as `resource-count-aws.sh cwp`)
 * aws ecs list-tasks (optional, when running as `resource-count-aws.sh cwp`)
 * aws s3api list-buckets (optional, when running as `resource-count-aws.sh data`)
@@ -48,22 +51,6 @@ If the account was not originally provisioned in that manner, the role may not e
 Administrators can create the role manually by following this documentation:
 
 https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_accounts_access.html
-
-## Compute Support
-
-The script can collect sizing information for Prisma Cloud Compute (CWP, aka Cloud Workload Protection) by specifying `cwp` as a parameter (Can be combined with other flags).
-
-* Example ```./resource-count-aws.sh cwp```
-
-Currently, this is limited to counting AWS Lambda Functions and ECS Fargate Tasks (assuming each task runs only one container).
-
-## Data Security Support
-
-The script can collect sizing information for Prisma Cloud Data Security (PCDS) by specifying `data` as a parameter (Can be combined with other flags).
-
-**NOTE: With this flag enabled, the script can take a while to run depending on the amount of data within your S3 bucket**
-
-* Example ```./resource-count-aws.sh data```
 
 ## Running the Script from AWS Cloud Shell
 

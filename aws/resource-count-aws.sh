@@ -225,6 +225,15 @@ aws_s3api_list_buckets() {
   fi
 }
 
+aws_dynamodb_list_tables() {
+  RESULT=$(aws dynamodb list-tables --region="${1}" --output json 2>/dev/null)
+  if [ $? -eq 0 ]; then
+    echo "${RESULT}"
+  else
+    echo '{"Error": [] }'
+  fi
+}
+
 # aws_s3_ls_bucket_size() {
 #   RESULT=$(aws s3api list-objects --bucket "${1}" --output json --query "sum(Contents[].Size)" 2>/dev/null)
 #   if [ $? -eq 0 ]; then
@@ -302,6 +311,16 @@ get_s3_bucket_count() {
   RESULT=0
   S3_BUCKETS_COUNT=$(aws_s3api_list_buckets | jq ', | length' 2>/dev/null)
   echo "${RESULT}"
+}
+
+get_dynamodb_table_count() {
+  REGION=$1
+  RESOURCE_COUNT=$(aws_dynamodb_list_tables "${REGION}" | jq '.TableNames | length' 2>/dev/null)
+  if [[ -z "$RESOURCE_COUNT" || "$RESOURCE_COUNT" -lt 0 ]]; then
+    echo 0
+  else
+    echo "${RESOURCE_COUNT}"
+  fi
 }
 
 ####
@@ -406,6 +425,7 @@ reset_account_counters() {
   ECS_FARGATE_TASK_COUNT=0
   # S3_BUCKETS_SIZE=0
   S3_BUCKETS_COUNT=0
+  DYNAMODB_TABLE_COUNT=0
 }
 
 reset_global_counters() {
@@ -424,6 +444,7 @@ reset_global_counters() {
   # WORKLOAD_COUNT_GLOBAL_WITH_IAM_MODULE=0
   # LAMBDA_CREDIT_USAGE_GLOBAL=0
   # COMPUTE_CREDIT_USAGE_GLOBAL=0
+  DYNAMODB_TABLE_COUNT_GLOBAL=0
 }
 
 ##########################################################################################
@@ -488,6 +509,18 @@ count_account_resources() {
       REDSHIFT_COUNT=$((REDSHIFT_COUNT + RESOURCE_COUNT))
     done
     echo "Total RedShift Clusters across all regions: ${REDSHIFT_COUNT}"
+    echo "###################################################################################"
+    echo ""
+
+    echo "###################################################################################"
+    echo "DynamoDB Tables"
+    for i in "${REGION_LIST[@]}"
+    do
+      RESOURCE_COUNT=$(get_dynamodb_table_count "${i}")
+      echo "  Count of DynamoDB Tables in Region ${i}: ${RESOURCE_COUNT}"
+      DYNAMODB_TABLE_COUNT=$((DYNAMODB_TABLE_COUNT + RESOURCE_COUNT))
+    done
+    echo "Total DynamoDB Tables across all regions: ${DYNAMODB_TABLE_COUNT}"
     echo "###################################################################################"
     echo ""
 
@@ -579,6 +612,7 @@ count_account_resources() {
     RDS_INSTANCE_COUNT_GLOBAL=$((RDS_INSTANCE_COUNT_GLOBAL + RDS_INSTANCE_COUNT))
     # NATGW_COUNT_GLOBAL=$((NATGW_COUNT_GLOBAL + NATGW_COUNT))
     REDSHIFT_COUNT_GLOBAL=$((REDSHIFT_COUNT_GLOBAL + REDSHIFT_COUNT))
+    DYNAMODB_TABLE_COUNT_GLOBAL=$((DYNAMODB_TABLE_COUNT_GLOBAL + DYNAMODB_TABLE_COUNT))
     # ELB_COUNT_GLOBAL=$((ELB_COUNT_GLOBAL + ELB_COUNT))
     LAMBDA_COUNT_GLOBAL=$((LAMBDA_COUNT_GLOBAL + LAMBDA_COUNT))
     ECS_FARGATE_TASK_COUNT_GLOBAL=$((ECS_FARGATE_TASK_COUNT_GLOBAL + ECS_FARGATE_TASK_COUNT))
@@ -601,8 +635,10 @@ count_account_resources() {
   echo "  Count of RDS Instances:     ${RDS_INSTANCE_COUNT_GLOBAL}"
   # echo "  Count of NAT Gateways:      ${NATGW_COUNT_GLOBAL}"
   echo "  Count of RedShift Clusters: ${REDSHIFT_COUNT_GLOBAL}"
+  echo "  Count of DynamoDB Tables:   ${DYNAMODB_TABLE_COUNT_GLOBAL}"
   echo "  Count of Lambda Functions: ${LAMBDA_COUNT_GLOBAL}"
   echo "  Count of ECS Fargate Tasks: ${ECS_FARGATE_TASK_COUNT_GLOBAL}"
+  echo "  Count of S3 Buckets: ${S3_BUCKETS_COUNT_GLOBAL}"
   # echo "  Count of Maximum EKS Cluster Nodes: ${EKS_CLUSTER_NODE_COUNT}"
   # echo "  Count of ELBs:              ${ELB_COUNT_GLOBAL}"
   # echo ""
@@ -644,7 +680,7 @@ count_account_resources() {
   echo "If you have any questions/concerns, please work with the relevant sales representative."
 #   echo "If you have any questions/concerns, please see the following licensing guide:"
 #   echo "https://www.paloaltonetworks.com/resources/guides/prisma-cloud-enterprise-edition-licensing-guide"
-# }
+}
 
 ##########################################################################################
 # Allow shellspec to source this script.
